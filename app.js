@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-const path = require('path'); // Zorg dat je 'path' gebruikt
+const path = require('path');
 const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 const mysql = require('mysql2');
@@ -11,14 +11,19 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*', // Pas dit aan voor veiligheid in productie
+        origin: '*', // Sta verbindingen toe vanaf elke origin (ontwikkelingsfase)
+        methods: ['GET', 'POST'],
     },
 });
 
 // Stel de public map in voor statische bestanden
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.set('views', path.join(__dirname, "public"));
+// Stel views map in voor rendering (optioneel als je templating engines gebruikt)
+app.set('views', path.join(__dirname, 'public'));
+
+// Stel de weergave-engine in (optioneel, als je geen templating-engine gebruikt, kun je dit weglaten)
+app.set('view engine', 'html');
 
 // Maak een pool voor databaseverbindingen
 const pool = mysql.createPool({
@@ -37,37 +42,44 @@ pool.promise()
         console.error('Databaseverbinding mislukt:', err.message);
     });
 
-// Socket.IO Events
+// Socket.IO Event-handlers
 io.on('connection', (socket) => {
-    console.log('Een gebruiker is verbonden:', socket.id);
+    console.log(`Een gebruiker is verbonden: ${socket.id}`);
 
-    // Luisteren naar berichten van de client
+    // Privéberichten
     socket.on('privateMessage', (data) => {
-        console.log('Privébericht ontvangen:', data);
-        // Stuur het bericht naar de specifieke ontvanger
-        io.to(data.to).emit('privateMessage', data);
+        console.log(`Privébericht ontvangen van ${socket.id}:`, data);
+        io.to(data.to).emit('privateMessage', {
+            from: socket.id,
+            message: data.message,
+        });
     });
 
+    // Groepsberichten
     socket.on('groupMessage', (data) => {
-        console.log('Groepsbericht ontvangen:', data);
-        // Stuur het bericht naar de groep
-        io.to(data.group).emit('groupMessage', data);
+        console.log(`Groepsbericht ontvangen in groep ${data.group}:`, data);
+        io.to(data.group).emit('groupMessage', {
+            from: socket.id,
+            message: data.message,
+        });
     });
 
-    // Een gebruiker toetreedt tot een groep
+    // Toetreden tot een groep
     socket.on('joinGroup', (group) => {
         socket.join(group);
         console.log(`${socket.id} is toegetreden tot groep: ${group}`);
     });
 
+    // Verbreken van de verbinding
     socket.on('disconnect', () => {
-        console.log('Een gebruiker is losgekoppeld:', socket.id);
+        console.log(`Een gebruiker is losgekoppeld: ${socket.id}`);
     });
 });
 
-app.get('/', async function (req, res){
-    res.render('index')
-})
+// Route voor de homepage
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Start de server
 const PORT = process.env.PORT || 3000;

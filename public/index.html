@@ -3,9 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Chat App</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
 </head>
 <body>
-    <h1>I hate NIgger</h1>
+    <h1>Welkom bij de Chat App</h1>
+    <div id="chat">
+        <input id="message" placeholder="Typ je bericht...">
+        <button id="send">Verzend</button>
+    </div>
+    <script>
+        const socket = io();
+
+        // Verstuur een bericht
+        document.getElementById('send').addEventListener('click', () => {
+            const message = document.getElementById('message').value;
+            socket.emit('groupMessage', {
+                group: 'general',
+                message: message,
+            });
+        });
+
+        // Ontvang berichten
+        socket.on('groupMessage', (data) => {
+            console.log('Groepsbericht ontvangen:', data.message);
+        });
+    </script>
 </body>
 </html>
