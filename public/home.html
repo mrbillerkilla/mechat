@@ -3,32 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js"></script>
+    <title>Chat UI</title>
+    <link rel="stylesheet" href="home.css">
 </head>
 <body>
-    <h1>Welkom bij de Chat App</h1>
-    <div id="chat">
-        <input id="message" placeholder="Typ je bericht...">
-        <button id="send">Verzend</button>
+    <div class="container">
+        <header>
+            <a href="#" style="color: green;">Home</a>
+            <a href="#">Chat</a>
+            <a href="#">Groepchat</a>
+            <div class="me">me</div>
+        </header>
+        <aside class="sidebar">
+            <div class="recent">
+                <h3>Recent:</h3>
+                <p>Mike - Online</p>
+                <p>Mike - Offline</p>
+                <p>Mike - Online</p>
+                <p>Mike - Offline</p>
+            </div>
+        </aside>
+        <main class="main">
+            <div class="recent">
+                <h3>Online:</h3>
+                <div class="online-item">
+                    <span>Mike</span>
+                    <span>8 hours</span>
+                </div>
+                <div class="online-item">
+                    <span>Mike</span>
+                    <span>8 hours</span>
+                </div>
+            </div>
+        </main>
+        <footer class="explore">
+            <div class="nerdy">
+                <h4>Nerdy</h4>
+                <a href="#">JS group</a>
+                <a href="#">PHP group</a>
+                <a href="#">CS group</a>
+            </div>
+            <div class="gossip">
+                <h4>Gossip</h4>
+                <a href="#">Kylie</a>
+                <a href="#">Kardashians</a>
+                <a href="#">About Boys</a>
+            </div>
+            <div class="gaming">
+                <h4>Gaming</h4>
+                <a href="#">GTA</a>
+                <a href="#">MC</a>
+            </div>
+            <div class="chill">
+                <h4>Chill</h4>
+                <a href="#">Weekend</a>
+            </div>
+        </footer>
     </div>
-    <script>
-        const socket = io();
-
-        // Verstuur een bericht
-        document.getElementById('send').addEventListener('click', () => {
-            const message = document.getElementById('message').value;
-            socket.emit('groupMessage', {
-                group: 'general',
-                message: message,
-            });
-        });
-
-        // Ontvang berichten
-        socket.on('groupMessage', (data) => {
-            console.log('Groepsbericht ontvangen:', data.message);
-        });
-    </script>
 </body>
 </html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="personal.css">   
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="#">Home</a>
+            <a href="#" style="color: green;">Chat</a>
+            <a href="#">Groepchat</a>
+            <div class="me">me</div>
+        </header>
+
+        <aside class="sidebar">
+            <h3>Recent</h3>
+            <h4>Vrienden:</h4>
+            <div class="user"><span>Mike</span> <span style="color: green;">Online</span></div>
+            <div class="user"><span>Mike</span> <span style="color: red;">Offline</span></div>
+        </aside>
+
+        <main class="main">
+            <div id="messages">
+                <!-- Chat messages komen hier -->
+            </div>
+
+            <div class="input-container">
+                <input id="message" type="text" placeholder="Typ je bericht...">
+                <button id="send">Send</button>
+            </div>
+        </main>
+
+        <footer class="footer">
+            &copy; 2024 Chat App
+        </footer>
+    </div>
+
+    <script>
+        const socket = io();
+
+        document.getElementById('send').addEventListener('click', () => {
+            const message = document.getElementById('message').value;
+            if (message.trim() !== '') {
+                socket.emit('groupMessage', { group: 'general', message });
+                const messagesDiv = document.getElementById('messages');
+                const newMessage = document.createElement('div');
+                newMessage.textContent = `You: ${message}`;
+                messagesDiv.appendChild(newMessage);
+                document.getElementById('message').value = '';
+            }
+        });
+
+        socket.on('groupMessage', (data) => {
+            const messagesDiv = document.getElementById('messages');
+            const newMessage = document.createElement('div');
+            newMessage.textContent = `${data.group}: ${data.message}`;
+            messagesDiv.appendChild(newMessage);
+        });
+    </script>
+</body>
+</html>

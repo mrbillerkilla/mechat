@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
@@ -17,6 +18,7 @@ const io = new Server(server, {
     },
 });
 
+
 // Middleware voor body parsing en statische bestanden
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
@@ -24,6 +26,16 @@ app.use(express.urlencoded({ extended: true }));
 // Stel views map in voor rendering (optioneel als je templating engines gebruikt)
 app.set('views', path.join(__dirname, 'public'));
 app.set('view engine', 'html');
+
+app.get('/home', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'home.html'));
+});
+
+app.use(session({
+secret: "MAMA",
+resave: false,
+saveUninitialized: true }));
+
 
 // Maak een pool voor databaseverbindingen
 const pool = mysql.createPool({
@@ -134,13 +146,86 @@ app.post('/login', async (req, res) => {
             return res.status(400).send('Onjuist wachtwoord.');
         }
 
-        // Login succesvol
-        res.redirect('/home'); // Pas aan naar de gewenste pagina na login
+        // Login succesvol - Sla gebruiker op in sessie
+        req.session.user = {
+            id: user[0].id,
+            username: user[0].username,
+        };
+
+        console.log('Gebruiker succesvol ingelogd:', req.session.user);
+
+        // Redirect naar home.html
+        res.redirect('/home');
     } catch (err) {
         console.error('Fout bij inloggen:', err);
         res.status(500).send('Er is een fout opgetreden.');
     }
 });
+
+
+// Login-functionaliteit
+// app.post('/login', async (req, res) => {
+//     const { username, password } = req.body;
+
+//     try {
+//         // Controleer of de gebruiker bestaat
+//         const [user] = await pool.promise().query(
+//             'SELECT * FROM users WHERE username = ?',
+//             [username]
+//         );
+
+//         if (user.length === 0) {
+//             return res.status(400).send('Gebruikersnaam bestaat niet.');
+//         }
+
+//         const validPassword = await bcrypt.compare(password, user[0].password);
+
+//         if (!validPassword) {
+//             return res.status(400).send('Onjuist wachtwoord.');
+//         }
+
+//         // Login succesvol
+//         res.redirect('/home.html'); // Pas aan naar de gewenste pagina na login
+//     } catch (err) {
+//         console.error('Fout bij inloggen:', err);
+//         res.status(500).send('Er is een fout opgetreden.');
+//     }
+// });
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    if (username && password) {
+        connection.query('SELECT * FROM users WHERE username = ?', [username], (error, results) => {
+            if (error) {
+                console.error(error);
+                res.send('Er is een fout opgetreden bij het inloggen.');
+            } else {
+                if (results.length > 0) {
+                    const user = results[0];
+
+                    // Controleer het ingevoerde wachtwoord met bcrypt
+                    bcrypt.compare(password, user.password, (err, isMatch) => {
+                        if (err) {
+                            console.error(err);
+                            res.send('Er is een fout opgetreden.');
+                        } else if (isMatch) {
+                            // Redirect naar home.html
+                            res.redirect('/home');
+                        } else {
+                            res.send('Ongeldige inloggegevens.');
+                        }
+                    });
+                } else {
+                    res.send('Gebruiker niet gevonden.');
+                }
+            }
+        });
+    } else {
+        res.send('Vul zowel gebruikersnaam als wachtwoord in.');
+    }
+});
+
 
 
 // Start de server
