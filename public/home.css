@@ -121,3 +121,62 @@ header .me {
     background-color: green;
     color: white;
 }
+
+
+.btn {
+    width: 130px;
+    height: 40px;
+    font-size: 1.1em;
+    cursor: pointer;
+    background-color: #171717;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    transition: all .4s;
+    margin-top: 140px;
+   }
+   
+   .btn:hover {
+    border-radius: 5px;
+    transform: translateY(-10px);
+    box-shadow: 0 7px 0 -2px #f85959,
+     0 15px 0 -4px #39a2db,
+     0 16px 10px -3px #39a2db;
+   }
+   
+   .btn:active {
+    transition: all 0.2s;
+    transform: translateY(-5px);
+    box-shadow: 0 2px 0 -2px #f85959,
+     0 8px 0 -4px #39a2db,
+     0 12px 10px -3px #39a2db;
+   }
+
+   .explore {
+    grid-area: footer;
+    background-color: #fff;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Maximaal 4 kolommen */
+    gap: 10px;
+}
+
+.explore div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: lightblue; /* Aantrekkelijke knopstijl */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.explore div:hover {
+    background-color: deepskyblue; /* Hover effect */
+    color: white;
+}

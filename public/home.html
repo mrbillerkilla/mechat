@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <a href="#" style="color: green;">Home</a>
-            <a href="#">Chat</a>
+            <a href="/cpersonal-chat.html">Chat</a>
             <a href="#">Groepchat</a>
             <div class="me">me</div>
         </header>
@@ -22,6 +22,8 @@
                 <p>Mike - Online</p>
                 <p>Mike - Offline</p>
             </div>
+            <button class="btn">Make a groupschat!</button>
+
         </aside>
         <main class="main">
             <div class="recent">
@@ -37,7 +39,7 @@
             </div>
         </main>
         <footer class="explore">
-            <div class="nerdy">
+            <!-- <div class="nerdy">
                 <h4>Nerdy</h4>
                 <a href="#">JS group</a>
                 <a href="#">PHP group</a>
@@ -57,8 +59,26 @@
             <div class="chill">
                 <h4>Chill</h4>
                 <a href="#">Weekend</a>
-            </div>
+            </div> -->
         </footer>
     </div>
 </body>
+<script>
+   fetch('/api/groups')
+    .then(response => response.json())
+    .then(groups => {
+        const footer = document.querySelector('.explore');
+        footer.innerHTML = ''; // Wis bestaande inhoud
+
+        groups.forEach(group => {
+            // Maak een knopachtige div voor elke groep
+            const groupDiv = document.createElement('div');
+            groupDiv.textContent = group.group_name; // Gebruik group_name als kolomnaam
+            footer.appendChild(groupDiv);
+        });
+    })
+    .catch(err => console.error('Fout bij ophalen van groepen:', err));
+
+</script>
+
 </html>

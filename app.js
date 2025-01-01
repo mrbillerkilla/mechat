@@ -163,35 +163,6 @@ app.post('/login', async (req, res) => {
 });
 
 
-// Login-functionaliteit
-// app.post('/login', async (req, res) => {
-//     const { username, password } = req.body;
-
-//     try {
-//         // Controleer of de gebruiker bestaat
-//         const [user] = await pool.promise().query(
-//             'SELECT * FROM users WHERE username = ?',
-//             [username]
-//         );
-
-//         if (user.length === 0) {
-//             return res.status(400).send('Gebruikersnaam bestaat niet.');
-//         }
-
-//         const validPassword = await bcrypt.compare(password, user[0].password);
-
-//         if (!validPassword) {
-//             return res.status(400).send('Onjuist wachtwoord.');
-//         }
-
-//         // Login succesvol
-//         res.redirect('/home.html'); // Pas aan naar de gewenste pagina na login
-//     } catch (err) {
-//         console.error('Fout bij inloggen:', err);
-//         res.status(500).send('Er is een fout opgetreden.');
-//     }
-// });
-
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
 
@@ -226,9 +197,19 @@ app.post('/login', (req, res) => {
     }
 });
 
+// Groepen ophalen
+app.get('/api/groups', async (req, res) => {
+    try {
+        const [groups] = await pool.promise().query('SELECT `group_name` FROM `groups`'); // Haal alleen groups_name op
+        res.json(groups); // Stuur als JSON naar de frontend
+    } catch (err) {
+        console.error('Fout bij ophalen van groepen:', err);
+        res.status(500).send('Er is een fout opgetreden bij het ophalen van groepen.');
+    }
+});
 
 
-// Start de server
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server draait op http://localhost:${PORT}`);
