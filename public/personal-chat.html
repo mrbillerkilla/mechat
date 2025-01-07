@@ -16,11 +16,11 @@
             <div class="me">me</div>
         </header>
 
-        <aside class="sidebar">
+        <aside class="sidebar" id="user-sidebar">
             <h3>Recent</h3>
-            <h4>Vrienden:</h4>
-            <div class="user"><span>Mike</span> <span style="color: green;">Online</span></div>
-            <div class="user"><span>Mike</span> <span style="color: red;">Offline</span></div>
+
+            <!-- <div class="user"><span>Mike</span> <span style="color: green;">Online</span></div>
+            <div class="user"><span>Mike</span> <span style="color: red;">Offline</span></div> -->
         </aside>
 
         <main class="main">
@@ -60,6 +60,24 @@
             newMessage.textContent = `${data.group}: ${data.message}`;
             messagesDiv.appendChild(newMessage);
         });
+
+        fetch('/api/users') // Roep de API aan om gebruikers op te halen
+        .then(response => response.json())
+        .then(users => {
+            const sidebar = document.getElementById('user-sidebar');
+
+            users.forEach(user => {
+                // Maak een div voor elke gebruiker
+                const userDiv = document.createElement('div');
+                userDiv.classList.add('user');
+                userDiv.innerHTML = `
+                    <span>${user.username}</span>
+                    <span style="color: green;">Online</span> <!-- Online status aanpassen indien nodig -->
+                `;
+                sidebar.appendChild(userDiv);
+            });
+        })
+        .catch(err => console.error('Fout bij ophalen van gebruikers:', err));
     </script>
 </body>
 </html>

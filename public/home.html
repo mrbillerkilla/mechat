@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <a href="#" style="color: green;">Home</a>
-            <a href="/cpersonal-chat.html">Chat</a>
+            <a href="/personal-chat.html">Chat</a>
             <a href="#">Groepchat</a>
             <div class="me">me</div>
         </header>
@@ -23,7 +23,6 @@
                 <p>Mike - Offline</p>
             </div>
             <button class="btn">Make a groupschat!</button>
-
         </aside>
         <main class="main">
             <div class="recent">
@@ -39,46 +38,31 @@
             </div>
         </main>
         <footer class="explore">
-            <!-- <div class="nerdy">
-                <h4>Nerdy</h4>
-                <a href="#">JS group</a>
-                <a href="#">PHP group</a>
-                <a href="#">CS group</a>
-            </div>
-            <div class="gossip">
-                <h4>Gossip</h4>
-                <a href="#">Kylie</a>
-                <a href="#">Kardashians</a>
-                <a href="#">About Boys</a>
-            </div>
-            <div class="gaming">
-                <h4>Gaming</h4>
-                <a href="#">GTA</a>
-                <a href="#">MC</a>
-            </div>
-            <div class="chill">
-                <h4>Chill</h4>
-                <a href="#">Weekend</a>
-            </div> -->
+            <!-- Groepen worden hier geladen -->
         </footer>
     </div>
 </body>
 <script>
-   fetch('/api/groups')
-    .then(response => response.json())
-    .then(groups => {
-        const footer = document.querySelector('.explore');
-        footer.innerHTML = ''; // Wis bestaande inhoud
+    fetch('/api/groups')
+        .then(response => response.json())
+        .then(groups => {
+            const footer = document.querySelector('.explore');
+            footer.innerHTML = ''; // Wis bestaande inhoud
 
-        groups.forEach(group => {
-            // Maak een knopachtige div voor elke groep
-            const groupDiv = document.createElement('div');
-            groupDiv.textContent = group.group_name; // Gebruik group_name als kolomnaam
-            footer.appendChild(groupDiv);
-        });
-    })
-    .catch(err => console.error('Fout bij ophalen van groepen:', err));
+            groups.forEach(group => {
+                // Maak een knopachtige div voor elke groep
+                const groupDiv = document.createElement('div');
+                groupDiv.textContent = group.group_name; // Gebruik group_name als kolomnaam
+                groupDiv.classList.add('group-item');
 
+                // Voeg klikfunctionaliteit toe om te redirecten naar de groepschatpagina
+                groupDiv.addEventListener('click', () => {
+                    window.location.href = `/group_chat.html?group_id=${group.id}`;
+                });
+
+                footer.appendChild(groupDiv);
+            });
+        })
+        .catch(err => console.error('Fout bij ophalen van groepen:', err));
 </script>
-
 </html>

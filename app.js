@@ -118,7 +118,7 @@ app.post('/register', async (req, res) => {
             [username, hashedPassword]
         );
 
-        res.redirect('/')
+        res.redirect('/index.html')
     } catch (err) {
         console.error('Fout bij registratie:', err);
         res.status(500).send('Er is een fout opgetreden.');
@@ -205,6 +205,65 @@ app.get('/api/groups', async (req, res) => {
     } catch (err) {
         console.error('Fout bij ophalen van groepen:', err);
         res.status(500).send('Er is een fout opgetreden bij het ophalen van groepen.');
+    }
+});
+
+app.get('/api/group-messages/:group_id', async (req, res) => {
+    const { group_id } = req.params;
+
+    try {
+        const [messages] = await pool.promise().query(
+            `SELECT gm.message, gm.created_at, u.username 
+             FROM group_messages gm 
+             JOIN users u ON gm.sender_id = u.id 
+             WHERE gm.group_id = ? 
+             ORDER BY gm.created_at ASC`,
+            [group_id]
+        );
+        res.json(messages); // Stuur de berichten terug
+    } catch (err) {
+        console.error('Fout bij ophalen van berichten:', err);
+        res.status(500).send('Er is een fout opgetreden bij het ophalen van berichten.');
+    }
+});
+
+app.post('/api/group-messages', async (req, res) => {
+    const { group_id, sender_id, message } = req.body;
+
+    try {
+        await pool.promise().query(
+            'INSERT INTO group_messages (group_id, sender_id, message) VALUES (?, ?, ?)',
+            [group_id, sender_id, message]
+        );
+        res.status(201).send('Bericht opgeslagen');
+    } catch (err) {
+        console.error('Fout bij opslaan van bericht:', err);
+        res.status(500).send('Er is een fout opgetreden bij het opslaan van het bericht.');
+    }
+});
+
+app.post('/api/groups', async (req, res) => {
+    const { group_name } = req.body;
+
+    try {
+        const [result] = await pool.promise().query(
+            'INSERT INTO groups (group_name) VALUES (?)',
+            [group_name]
+        );
+        res.status(201).json({ group_id: result.insertId, message: 'Groep aangemaakt!' });
+    } catch (err) {
+        console.error('Fout bij aanmaken van groep:', err);
+        res.status(500).send('Er is een fout opgetreden bij het aanmaken van de groep.');
+    }
+});
+
+app.get('/api/users', async (req, res) => {
+    try {
+        const [users] = await pool.promise().query('SELECT username FROM users');
+        res.json(users); // Stuur de lijst met gebruikers terug als JSON
+    } catch (err) {
+        console.error('Fout bij ophalen van gebruikers:', err);
+        res.status(500).send('Er is een fout opgetreden bij het ophalen van gebruikers.');
     }
 });
 

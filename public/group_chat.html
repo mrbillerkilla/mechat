@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groepschat</title>
+    <link rel="stylesheet" href="group_chat.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <a href="#">Home</a>
+                <a href="#">Chat</a>
+                <a href="#">Groepschat</a>
+            </div>
+            <div>Me</div>
+        </header>
+        
+        <aside class="sidebar">
+            <h3>Section 7 Leden:</h3>
+            <div class="user"><span>Mike</span> <span style="color: green;">Online</span></div>
+            <div class="user"><span>Mike</span> <span style="color: red;">Offline</span></div>
+        </aside>
+
+        <main class="main">
+            <div class="chat-window" id="chat-window">
+                <!-- Berichten worden hier weergegeven -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="Typ je bericht...">
+                <button id="send-button">Verzend</button>
+            </div>
+        </main>
+
+        <footer>
+            &copy; 2025 Groepschat App
+        </footer>
+    </div>
+
+    <script>
+        // Dynamisch laden van berichten
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatWindow = document.getElementById('chat-window');
+
+            // Dummy data (vervangen door fetch van API)
+            const messages = [
+                { username: 'Mike', message: 'Hallo allemaal!' },
+                { username: 'Esma', message: 'Hoe gaat het?' }
+            ];
+
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = `${msg.username}: ${msg.message}`;
+                chatWindow.appendChild(messageDiv);
+            });
+
+            document.getElementById('send-button').addEventListener('click', () => {
+                const input = document.getElementById('message-input');
+                const message = input.value;
+
+                if (message.trim() !== '') {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.textContent = `You: ${message}`;
+                    chatWindow.appendChild(messageDiv);
+
+                    input.value = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
