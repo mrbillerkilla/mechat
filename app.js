@@ -4,7 +4,6 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 const dotenv = require('dotenv');
-const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 
 dotenv.config();
@@ -36,26 +35,6 @@ secret: "MAMA",
 resave: false,
 saveUninitialized: true }
 ));
-
-
-// Maak een pool voor databaseverbindingen
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-});
-
-// Controleer databaseverbinding
-pool.promise()
-    .query('SELECT 1')
-    .then(() => {
-        console.log('Succesvol verbonden met de database!');
-    })
-    .catch((err) => {
-        console.error('Databaseverbinding mislukt:', err.message);
-    });
-
 
 // Route voor de homepage
 app.get('/', (req, res) => {

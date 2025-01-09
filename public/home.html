@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat UI</title>
+    <title>Home</title>
     <link rel="stylesheet" href="home.css">
 </head>
 <body>
@@ -43,26 +43,54 @@
     </div>
 </body>
 <script>
-    fetch('/api/groups')
-        .then(response => response.json())
-        .then(groups => {
-            const footer = document.querySelector('.explore');
-            footer.innerHTML = ''; // Wis bestaande inhoud
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('/api/groups')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP-fout! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(groups => {
+                const footer = document.querySelector('.explore');
+                footer.innerHTML = ''; // Wis bestaande inhoud
 
-            groups.forEach(group => {
-                // Maak een knopachtige div voor elke groep
-                const groupDiv = document.createElement('div');
-                groupDiv.textContent = group.group_name; // Gebruik group_name als kolomnaam
-                groupDiv.classList.add('group-item');
+                if (groups.length === 0) {
+                    const noGroupsMessage = document.createElement('p');
+                    noGroupsMessage.textContent = 'Geen groepen beschikbaar.';
+                    footer.appendChild(noGroupsMessage);
+                    return;
+                }
 
-                // Voeg klikfunctionaliteit toe om te redirecten naar de groepschatpagina
-                groupDiv.addEventListener('click', () => {
-                    window.location.href = `/group_chat.html?group_id=${group.id}`;
+                groups.forEach(group => {
+                    // Maak een knopachtige div voor elke groep
+                    const groupDiv = document.createElement('div');
+                    groupDiv.textContent = group.group_name; // Gebruik group_name als kolomnaam
+                    groupDiv.classList.add('group-item');
+
+                    // Debug: Toon de group_id in de console
+                    console.log(`Group ID: ${group.id}, Group Name: ${group.group_name}`);
+
+                    // Voeg klikfunctionaliteit toe om te redirecten naar de groepschatpagina
+                    groupDiv.addEventListener('click', () => {
+                        if (!group.id) {
+                            alert('Group ID ontbreekt! Controleer de gegevens.');
+                            console.error('Group ID ontbreekt:', group);
+                            return;
+                        }
+                        window.location.href = `/group_chat.html?group_id=${group.id}`;
+                    });
+
+                    footer.appendChild(groupDiv);
                 });
-
-                footer.appendChild(groupDiv);
+            })
+            .catch(err => {
+                console.error('Fout bij ophalen van groepen:', err);
+                const footer = document.querySelector('.explore');
+                const errorMessage = document.createElement('p');
+                errorMessage.textContent = 'Kan groepen niet ophalen. Probeer het later opnieuw.';
+                footer.appendChild(errorMessage);
             });
-        })
-        .catch(err => console.error('Fout bij ophalen van groepen:', err));
+    });
 </script>
 </html>
