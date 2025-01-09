@@ -5,22 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groepschat</title>
     <link rel="stylesheet" href="group_chat.css">
+    <script src="/socket.io/socket.io.js"></script>
+
 </head>
 <body>
     <div class="container">
         <header>
             <div>
-                <a href="#">Home</a>
-                <a href="#">Chat</a>
+                <a href="/public/home.html">Home</a>
+                <a href="/public/personal-chat.html">Chat</a>
                 <a href="#">Groepschat</a>
             </div>
             <div>Me</div>
         </header>
         
         <aside class="sidebar">
-            <h3>Section 7 Leden:</h3>
+            <h3>Leden:</h3>
             <div class="user"><span>Mike</span> <span style="color: green;">Online</span></div>
             <div class="user"><span>Mike</span> <span style="color: red;">Offline</span></div>
+            <div id="info"></div>
+
         </aside>
 
         <main class="main">
@@ -38,36 +42,91 @@
         </footer>
     </div>
 
-    <script>
-        // Dynamisch laden van berichten
-        document.addEventListener('DOMContentLoaded', () => {
-            const chatWindow = document.getElementById('chat-window');
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const info = document.getElementById('info'); // De plek waar we de IDs tonen
+    const chatWindow = document.getElementById('chat-window');
+    const input = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const socket = io();
 
-            // Dummy data (vervangen door fetch van API)
-            const messages = [
-                { username: 'Mike', message: 'Hallo allemaal!' },
-                { username: 'Esma', message: 'Hoe gaat het?' }
-            ];
+    // Haal group_id en user_id op
+    const urlParams = new URLSearchParams(window.location.search);
+    const groupId = urlParams.get('group_id');
+    const userId = localStorage.getItem('user_id'); // Haal userId uit localStorage of API
 
-            messages.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.textContent = `${msg.username}: ${msg.message}`;
-                chatWindow.appendChild(messageDiv);
-            });
+    // Debug info
+    if (!groupId || !userId) {
+        info.textContent = "Group ID of User ID ontbreekt!";
+    } else {
+        info.textContent = `Group ID: ${groupId}, User ID: ${userId}`;
+    }
 
-            document.getElementById('send-button').addEventListener('click', () => {
-                const input = document.getElementById('message-input');
-                const message = input.value;
+    // Voeg debug info toe aan console
+    console.log(`Group ID: ${groupId}, User ID: ${userId}`);
 
-                if (message.trim() !== '') {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.textContent = `You: ${message}`;
-                    chatWindow.appendChild(messageDiv);
+    if (!groupId) {
+        alert("Groep ID niet gevonden in de URL!");
+        return;
+    }
 
-                    input.value = '';
-                }
-            });
+    if (!userId) {
+        alert("Gebruiker ID niet gevonden!");
+        return;
+    }
+
+    // Join de groep
+    socket.emit('joinGroup', { groupId, userId });
+
+    // Ontvang bestaande berichten
+    socket.on('groupMessages', (messages) => {
+        chatWindow.innerHTML = '';
+        messages.forEach((msg) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `${msg.username}: ${msg.message}`;
+            chatWindow.appendChild(messageDiv);
         });
-    </script>
+    });
+
+    // Ontvang nieuwe berichten
+    socket.on('newMessage', (msg) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = `${msg.username}: ${msg.message}`;
+        chatWindow.appendChild(messageDiv);
+    });
+
+    // Verzenden van een bericht
+    sendButton.addEventListener('click', () => {
+        const message = input.value.trim();
+        if (message) {
+            socket.emit('sendMessage', { groupId, userId, message });
+
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `You: ${message}`;
+            chatWindow.appendChild(messageDiv);
+
+            input.value = '';
+        }
+    });
+});
+
+
+
+
+
+console.log('Verstuur gegevens:', {
+    groupId: gekozenGroepId,
+    userId: huidigeGebruikersId,
+    message: berichtInhoud,
+});
+
+socket.emit('sendMessage', {
+        groupId: gekozenGroepId, // Zorg dat deze waarde juist is.
+        userId: huidigeGebruikersId, // Zorg dat deze waarde juist is.
+        message: berichtInhoud // De tekst van de gebruiker.
+    });
+
+
+</script>
 </body>
 </html>
