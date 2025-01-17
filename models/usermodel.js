@@ -1,12 +1,14 @@
 const pool = require('../db');
 
-// Vind een gebruiker op basis van gebruikersnaam
 exports.findUserByUsername = async (username) => {
     const [rows] = await pool.promise().query('SELECT * FROM users WHERE username = ?', [username]);
-    return rows[0]; // Retourneer de eerste gebruiker of undefined
+    return rows[0];
 };
 
-// Maak een nieuwe gebruiker
 exports.createUser = async (username, hashedPassword) => {
-    await pool.promise().query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    const [result] = await pool.promise().query(
+        'INSERT INTO users (username, password) VALUES (?, ?)',
+        [username, hashedPassword]
+    );
+    return { id: result.insertId, username }; // Return the new user's ID and username
 };

@@ -8,17 +8,14 @@ const bcrypt = require('bcrypt');
 const userRoutes = require('./routers/userRoutes');
 const groupRoutes = require('./routers/groupRoutes');
 
-// Gebruik de groepsroutes
-app.use(groupRoutes);
-
-dotenv.config();
+dotenv.config(); // Zorg dat dotenv direct bovenaan staat
 
 const app = express();
 
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*', // Sta verbindingen toe vanaf elke origin (ontwikkelingsfase)
+        origin: '*',
         methods: ['GET', 'POST'],
     },
 });
@@ -30,12 +27,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sessie instellen
 app.use(session({
-    secret: "MAMA",
+    secret: 'your_secret_key',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: { secure: false } // Zet op true als HTTPS actief is
 }));
 
-// Stel views map in voor rendering (optioneel als je templating engines gebruikt)
+// Stel views map in voor rendering
 app.set('views', path.join(__dirname, 'public'));
 app.set('view engine', 'html');
 
@@ -46,9 +44,13 @@ app.get('/home', (req, res) => {
 
 // Gebruik de routes
 app.use('/', userRoutes);
+app.use('/', groupRoutes);
 
-// Gebruik de groepsroutes
-app.use(groupRoutes);
+app.use((req, res, next) => {
+    console.log('Session:', req.session);
+    next();
+});
+
 
 // Start de server
 const PORT = process.env.PORT || 3000;

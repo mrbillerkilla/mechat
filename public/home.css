@@ -85,21 +85,50 @@ header .me {
     background-color: #fff;
     padding: 20px;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* Maximaal 4 kolommen */
     gap: 10px;
+}
+
+.explore .group-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: lightblue; /* Aantrekkelijke knopstijl */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none; /* Remove default button border */
+    outline: none; /* Remove default button outline */
+}
+
+.explore .group-item:hover {
+    background-color: deepskyblue; /* Hover effect */
+    color: white;
 }
 
 .explore div {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: lightblue; /* Aantrekkelijke knopstijl */
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
     text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-.explore div a {
-    padding: 5px;
-    border-radius: 5px;
-    text-decoration: none;
+.explore div:hover {
+    background-color: deepskyblue; /* Hover effect */
+    color: white;
 }
 
 .nerdy a {
@@ -151,32 +180,3 @@ header .me {
      0 8px 0 -4px #39a2db,
      0 12px 10px -3px #39a2db;
    }
-
-   .explore {
-    grid-area: footer;
-    background-color: #fff;
-    padding: 20px;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Maximaal 4 kolommen */
-    gap: 10px;
-}
-
-.explore div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    border-radius: 5px;
-    background-color: lightblue; /* Aantrekkelijke knopstijl */
-    color: black;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.explore div:hover {
-    background-color: deepskyblue; /* Hover effect */
-    color: white;
-}

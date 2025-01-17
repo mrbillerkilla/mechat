@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 const {
     showHomePage,
@@ -18,5 +19,14 @@ router.post('/register', registerUser);
 
 // Route voor inloggen
 router.post('/login', loginUser);
+
+// Route to get user info
+router.get('/user-info', (req, res) => {
+    if (req.session.userId && req.session.username) {
+        res.json({ userId: req.session.userId, username: req.session.username });
+    } else {
+        res.status(401).send('Niet ingelogd');
+    }
+});
 
 module.exports = router;

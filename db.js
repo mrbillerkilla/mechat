@@ -10,9 +10,6 @@ const pool = mysql.createPool({
 
 module.exports = pool;
 
-
-
-
 // Controleer databaseverbinding
 pool.promise()
     .query('SELECT 1')

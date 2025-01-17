@@ -1,4 +1,4 @@
-const { findUserByUsername, createUser } = require('../models/usermodel');
+const { findUserByUsername, createUser } = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const path = require('path');
 const pool = require('../db');
@@ -25,9 +25,9 @@ exports.registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Nieuwe gebruiker toevoegen aan database
-        await createUser(username, hashedPassword);
+        const newUser = await createUser(username, hashedPassword);
 
-        res.redirect('/index.html');
+        res.redirect('/login.html'); // Redirect to login page after successful registration
     } catch (err) {
         console.error('Fout bij registratie:', err);
         res.status(500).send('Er is een fout opgetreden.');
@@ -44,20 +44,16 @@ exports.loginUser = async (req, res) => {
             return res.status(400).send('Gebruikersnaam bestaat niet.');
         }
 
-        const validPassword = await bcrypt.compare(password, user.password);
-
-        if (!validPassword) {
-            return res.status(400).send('Onjuist wachtwoord.');
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).send('Ongeldig wachtwoord.');
         }
 
-        // Sla gebruikersinformatie op in de sessie
-        req.session.user = {
-            id: user.id,
-            username: user.username,
-        };
+        // Sessie starten en gebruikersinformatie opslaan
+        req.session.userId = user.id;
+        req.session.username = user.username;
 
-        console.log('Gebruiker succesvol ingelogd:', req.session.user);
-        res.redirect('/home');
+        res.redirect('/index.html'); // Redirect to home page after successful login
     } catch (err) {
         console.error('Fout bij inloggen:', err);
         res.status(500).send('Er is een fout opgetreden.');
@@ -127,16 +123,22 @@ exports.saveGroupMessage = async (req, res) => {
         res.status(500).send('Er is een fout opgetreden bij het opslaan van het bericht.');
     }
 };
+// const express = require('express');
+// const router = express.Router();
+// const { registerUser, loginUser, showHomePage, showRegisterPage } = require('../controllers/userController');
 
+// router.get('/home', showHomePage);
+// router.get('/register', showRegisterPage);
+// router.post('/register', registerUser);
+// router.post('/login', loginUser);
 
+// // Route to get user info
+// router.get('/user-info', (req, res) => {
+//     if (req.session.userId && req.session.username) {
+//         res.json({ userId: req.session.userId, username: req.session.username });
+//     } else {
+//         res.status(401).send('Niet ingelogd');
+//     }
+// });
 
-
-
-
-
-
-
-
-
-
-
+// module.exports = router;

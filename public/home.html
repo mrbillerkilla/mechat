@@ -12,85 +12,80 @@
             <a href="#" style="color: green;">Home</a>
             <a href="/personal-chat.html">Chat</a>
             <a href="#">Groepchat</a>
-            <div class="me">me</div>
+            <div class="me" id="user-info">me</div>
         </header>
         <aside class="sidebar">
             <div class="recent">
                 <h3>Recent:</h3>
                 <p>Mike - Online</p>
                 <p>Mike - Offline</p>
-                <p>Mike - Online</p>
-                <p>Mike - Offline</p>
             </div>
-            <button class="btn">Make a groupschat!</button>
+            <button class="btn">Maak een groepschat!</button>
         </aside>
         <main class="main">
-            <div class="recent">
-                <h3>Online:</h3>
-                <div class="online-item">
-                    <span>Mike</span>
-                    <span>8 hours</span>
-                </div>
-                <div class="online-item">
-                    <span>Mike</span>
-                    <span>8 hours</span>
-                </div>
-            </div>
+            <h3>Beschikbare groepen:</h3>
         </main>
         <footer class="explore">
-            <!-- Groepen worden hier geladen -->
+            <div class="group-list" id="group-list">
+                <!-- Groepen worden hier dynamisch toegevoegd -->
+            </div>
+            &copy; 2025 Chat App
         </footer>
     </div>
-</body>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        fetch('/api/groups')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP-fout! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(groups => {
-                const footer = document.querySelector('.explore');
-                footer.innerHTML = ''; // Wis bestaande inhoud
 
-                if (groups.length === 0) {
-                    const noGroupsMessage = document.createElement('p');
-                    noGroupsMessage.textContent = 'Geen groepen beschikbaar.';
-                    footer.appendChild(noGroupsMessage);
-                    return;
-                }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const groupList = document.getElementById('group-list');
+            const userInfo = document.getElementById('user-info');
 
-                groups.forEach(group => {
-                    // Maak een knopachtige div voor elke groep
-                    const groupDiv = document.createElement('div');
-                    groupDiv.textContent = group.group_name; // Gebruik group_name als kolomnaam
-                    groupDiv.classList.add('group-item');
-
-                    // Debug: Toon de group_id in de console
-                    console.log(`Group ID: ${group.id}, Group Name: ${group.group_name}`);
-
-                    // Voeg klikfunctionaliteit toe om te redirecten naar de groepschatpagina
-                    groupDiv.addEventListener('click', () => {
-                        if (!group.id) {
-                            alert('Group ID ontbreekt! Controleer de gegevens.');
-                            console.error('Group ID ontbreekt:', group);
-                            return;
-                        }
-                        window.location.href = `/group_chat.html?group_id=${group.id}`;
-                    });
-
-                    footer.appendChild(groupDiv);
+            // Haal de gebruikersinformatie op van de server
+            fetch('/user-info')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP-fout! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    userInfo.textContent = `ID: ${user.userId}, Username: ${user.username}`;
+                    console.log(`User ID: ${user.userId}, Username: ${user.username}`);
+                })
+                .catch(err => {
+                    console.error('Fout bij ophalen van gebruikersinformatie:', err);
                 });
-            })
-            .catch(err => {
-                console.error('Fout bij ophalen van groepen:', err);
-                const footer = document.querySelector('.explore');
-                const errorMessage = document.createElement('p');
-                errorMessage.textContent = 'Kan groepen niet ophalen. Probeer het later opnieuw.';
-                footer.appendChild(errorMessage);
-            });
-    });
-</script>
+
+            // Haal de groepen op van de server
+            fetch('/groups')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP-fout! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(groups => {
+                    if (groups.length === 0) {
+                        groupList.textContent = 'Geen groepen gevonden.';
+                        return;
+                    }
+
+                    groups.forEach(group => {
+                        const groupButton = document.createElement('button');
+                        groupButton.classList.add('group-item');
+                        groupButton.textContent = group.group_name; // Gebruik de juiste kolomnaam uit je database
+
+                        // Voeg een click event toe om naar de groepspagina te gaan
+                        groupButton.addEventListener('click', () => {
+                            window.location.href = `/group_chat.html?group_id=${group.id}`;
+                        });
+
+                        groupList.appendChild(groupButton);
+                    });
+                })
+                .catch(err => {
+                    console.error('Fout bij ophalen van groepen:', err);
+                    groupList.textContent = 'Kan geen groepen ophalen. Probeer later opnieuw.';
+                });
+        });
+    </script>
+</body>
 </html>
