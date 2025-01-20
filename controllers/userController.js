@@ -49,11 +49,11 @@ exports.loginUser = async (req, res) => {
             return res.status(400).send('Ongeldig wachtwoord.');
         }
 
-        // Sessie starten en gebruikersinformatie opslaan
+        // Store user information in the session
         req.session.userId = user.id;
         req.session.username = user.username;
 
-        res.redirect('/index.html'); // Redirect to home page after successful login
+        res.redirect('/home');
     } catch (err) {
         console.error('Fout bij inloggen:', err);
         res.status(500).send('Er is een fout opgetreden.');
