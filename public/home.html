@@ -55,7 +55,7 @@
                 });
 
             // Haal de groepen op van de server
-            fetch('/groups')
+            fetch('/getGroups')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP-fout! status: ${response.status}`);

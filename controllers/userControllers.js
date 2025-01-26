@@ -49,9 +49,11 @@ exports.loginUser = async (req, res) => {
             return res.status(400).send('Ongeldig wachtwoord.');
         }
 
-        // Store user information in the session
+        // Sla de gebruiker op in de sessie
         req.session.userId = user.id;
         req.session.username = user.username;
+
+        console.log('Session na login:', req.session);
 
         res.redirect('/home');
     } catch (err) {
@@ -59,6 +61,7 @@ exports.loginUser = async (req, res) => {
         res.status(500).send('Er is een fout opgetreden.');
     }
 };
+
 
 
 // Haal groepen op

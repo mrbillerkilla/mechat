@@ -2,20 +2,17 @@ const pool = require('../db'); // Zorg ervoor dat je een correcte DB-verbinding 
 const { getMessages, saveMessage } = require('../models/messageModel');
 
 
-// Haal groepen op
 exports.getGroups = (req, res) => {
-    try {
-        pool.query("SELECT * FROM `groups`", (err, results, fields) => {
-            console.log(fields)
-            console.log(err);
-            res.status(200).json(results);
-        });
-    } catch (err) {
-        console.error('Fout bij ophalen van groepen:', err);
-        res.status(500).send('Er is een fout opgetreden bij het ophalen van groepen.');
-        //console.log(pool);
-    }
+    pool.query('SELECT * FROM `groups`', (err, results) => {
+        if (err) {
+            console.error('Databasefout:', err);
+            return res.status(500).json({ message: 'Fout bij het ophalen van groepen.' });
+        }
+        res.status(200).json(results);
+    });
 };
+
+
 
 // Maak een nieuwe groep aan
 exports.createGroup = async (req, res) => {

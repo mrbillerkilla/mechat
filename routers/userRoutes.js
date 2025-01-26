@@ -6,7 +6,7 @@ const {
     showRegisterPage,
     registerUser,
     loginUser
-} = require('../controllers/userController'); // Zorg ervoor dat dit naar de juiste controller verwijst
+} = require('../controllers/userControllers'); // Zorg ervoor dat dit naar de juiste controller verwijst
 
 // Route voor de homepage
 router.get('/', showHomePage);

@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sessie instellen
 app.use(session({
-    secret: 'your_secret_key',
+    secret: 'mama',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Zet op true als HTTPS actief is
@@ -53,7 +53,7 @@ app.use((req, res, next) => {
 
 
 // Start de server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 server.listen(PORT, () => {
     console.log(`Server draait op http://localhost:${PORT}`);
 });

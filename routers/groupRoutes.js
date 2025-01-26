@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const groupController = require('../controllers/groupControllers');
 
+// Definieer functies
 const getGroups = (req, res) => {
     res.json({ message: 'List of groups' });
 };
@@ -28,6 +30,5 @@ router.get('/user-info', (req, res) => {
         res.status(401).send('Niet ingelogd');
     }
 });
-
 
 module.exports = router;
