@@ -30,7 +30,11 @@ app.use(session({
     secret: 'mama',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Zet op true als HTTPS actief is
+    cookie: {
+        secure: false,         // Zet op true als je HTTPS gebruikt
+        httpOnly: true,        // Maak de cookie alleen toegankelijk voor de server
+        maxAge: 3600000    
+    }
 }));
 
 // Stel views map in voor rendering
@@ -53,7 +57,7 @@ app.use((req, res, next) => {
 
 
 // Start de server
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 300;
 server.listen(PORT, () => {
     console.log(`Server draait op http://localhost:${PORT}`);
 });

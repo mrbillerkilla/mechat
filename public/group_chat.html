@@ -42,22 +42,23 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const info = document.getElementById('info'); // De plek waar we de IDs tonen
+            // Get DOM elements
+            const info = document.getElementById('info');
             const userInfo = document.getElementById('user-info');
             const chatWindow = document.getElementById('chat-window');
             const input = document.getElementById('message-input');
             const sendButton = document.getElementById('send-button');
             const socket = io();
 
-            // Haal group_id op
+            // Get group_id from URL
             const urlParams = new URLSearchParams(window.location.search);
             const groupId = urlParams.get('group_id');
 
-            // Haal de gebruikersinformatie op van de server
+            // Fetch user information from the server
             fetch('/user-info')
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP-fout! status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     return response.json();
                 })
@@ -65,65 +66,95 @@
                     const userId = user.userId;
                     const username = user.username;
 
+                    // Display user information
                     userInfo.textContent = `ID: ${userId}, Username: ${username}`;
                     console.log(`User ID: ${userId}, Username: ${username}`);
 
-                    // Debug info
+                    // Check if groupId or userId is missing
                     if (!groupId || !userId) {
-                        info.textContent = "Group ID of User ID ontbreekt!";
+                        info.textContent = "Group ID or User ID is missing!";
+                        return;
                     } else {
                         info.textContent = `Group ID: ${groupId}, User ID: ${userId}`;
                     }
 
-                    // Voeg debug info toe aan console
+                    // Debug info
                     console.log(`Group ID: ${groupId}, User ID: ${userId}`);
 
-                    if (!groupId) {
-                        alert("Groep ID niet gevonden in de URL!");
-                        return;
-                    }
+                    // Fetch existing messages for the group
+                    fetch(`/groups/${groupId}/messages`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Error fetching messages: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(messages => {
+                            if (Array.isArray(messages)) {
+                                chatWindow.innerHTML = '';
+                                messages.forEach(msg => {
+                                    const messageDiv = document.createElement('div');
+                                    messageDiv.textContent = `User ${msg.sender_id}: ${msg.message}`;
+                                    chatWindow.appendChild(messageDiv);
+                                });
+                            } else {
+                                chatWindow.innerHTML = '<p>No messages found.</p>';
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error fetching messages:', err);
+                            chatWindow.innerHTML = '<p>Error loading messages.</p>';
+                        });
 
-                    if (!userId) {
-                        alert("Gebruiker ID niet gevonden!");
-                        return;
-                    }
-
-                    // Join de groep
+                    // Join the group
                     socket.emit('joinGroup', { groupId, userId });
 
-                    // Ontvang bestaande berichten
-                    socket.on('groupMessages', (messages) => {
-                        chatWindow.innerHTML = '';
-                        messages.forEach((msg) => {
-                            const messageDiv = document.createElement('div');
-                            messageDiv.textContent = `${msg.username}: ${msg.message}`;
-                            chatWindow.appendChild(messageDiv);
-                        });
-                    });
-
-                    // Ontvang nieuwe berichten
+                    // Receive new messages
                     socket.on('newMessage', (msg) => {
                         const messageDiv = document.createElement('div');
                         messageDiv.textContent = `${msg.username}: ${msg.message}`;
                         chatWindow.appendChild(messageDiv);
                     });
 
-                    // Verzenden van een bericht
-                    sendButton.addEventListener('click', () => {
+                    // Send a message
+                    sendButton.addEventListener('click', async () => {
                         const message = input.value.trim();
                         if (message) {
-                            socket.emit('sendMessage', { groupId, userId, message });
+                            try {
+                                // Send message to server via socket
+                                socket.emit('sendMessage', { groupId, userId, message });
 
-                            const messageDiv = document.createElement('div');
-                            messageDiv.textContent = `You: ${message}`;
-                            chatWindow.appendChild(messageDiv);
+                                // Save the message via backend
+                                const response = await fetch(`/groups/${groupId}/messages`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        group_id: groupId,
+                                        sender_id: userId,
+                                        message: message
+                                    })
+                                });
 
-                            input.value = '';
+                                if (!response.ok) {
+                                    throw new Error(`Error sending message: ${response.statusText}`);
+                                }
+
+                                // Display the message in the chat after successful storage
+                                const messageDiv = document.createElement('div');
+                                messageDiv.textContent = `You: ${message}`;
+                                chatWindow.appendChild(messageDiv);
+
+                                input.value = ''; // Clear the input
+                            } catch (err) {
+                                console.error('Error saving message:', err);
+                            }
                         }
                     });
                 })
                 .catch(err => {
-                    console.error('Fout bij ophalen van gebruikersinformatie:', err);
+                    console.error('Error fetching user information:', err);
                 });
         });
     </script>

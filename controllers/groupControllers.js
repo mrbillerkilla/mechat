@@ -5,12 +5,17 @@ const { getMessages, saveMessage } = require('../models/messageModel');
 exports.getGroups = (req, res) => {
     pool.query('SELECT * FROM `groups`', (err, results) => {
         if (err) {
-            console.error('Databasefout:', err);
-            return res.status(500).json({ message: 'Fout bij het ophalen van groepen.' });
+            console.error('Databasefout:', err); // Log fout als er een probleem is
+            return res.status(500).json({ message: 'Fout bij ophalen van groepen.' });
         }
-        res.status(200).json(results);
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Geen groepen gevonden.' });
+        }
+        res.status(200).json(results); // Retourneer opgehaalde groepen
     });
 };
+
+
 
 
 
@@ -35,21 +40,48 @@ exports.createGroup = async (req, res) => {
 };
 
 // Haal berichten van een groep op
-exports.getGroupMessages = async (req, res) => {
-    const { group_id } = req.params;
+// exports.getGroupMessages = async (req, res) => {
+//     const { group_id } = req.params;
 
-    if (!group_id) {
-        return res.status(400).send('Group ID is vereist.');
+//     if (!group_id) {
+//         return res.status(400).send('Group ID is vereist.');
+//     }
+
+//     try {
+//         const messages = await getMessages(group_id);
+//         res.status(200).json(messages);
+//     } catch (err) {
+//         console.error('Fout bij ophalen van berichten:', err);
+//         res.status(500).send('Er is een fout opgetreden bij het ophalen van berichten.');
+//     }
+// };
+
+exports.getGroupMessages = async (req, res) => {
+    const groupId = req.params.group_id;
+
+    if (!groupId) {
+        return res.status(400).json({ message: 'Group ID is vereist.' });
     }
 
     try {
-        const messages = await getMessages(group_id);
-        res.status(200).json(messages);
+        // Haal alle berichten op voor de opgegeven groep
+        const [messages] = await pool.promise().query(
+            'SELECT * FROM group_messages WHERE group_id = ? ORDER BY created_at ASC',
+            [groupId]
+        );
+
+        if (messages.length === 0) {
+            return res.status(404).json({ message: 'Geen berichten gevonden voor deze groep.' });
+        }
+
+        res.status(200).json(messages); // Stuur de berichten terug naar de client
     } catch (err) {
         console.error('Fout bij ophalen van berichten:', err);
-        res.status(500).send('Er is een fout opgetreden bij het ophalen van berichten.');
+        res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van berichten.' });
     }
 };
+
+
 
 // Sla een bericht op in een groep
 exports.saveGroupMessage = async (req, res) => {
