@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #00C8FF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            padding-top: 50px;
+        }
+        .navbar {
+            width: 100%;
+            background-color: black;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .nav-links a.active {
+            color: limegreen;
+        }
+        .profile {
+            background-color: white;
+            padding: 5px 10px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+        }
+        .profile span {
+            background-color: #0078FF;
+            color: white;
+            border-radius: 50%;
+            padding: 5px 10px;
+            font-weight: bold;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+            margin-top: 80px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        label {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: lightgray;
+        }
+        button {
+            background-color: black;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+            .nav-links {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">Chat</a>
+            <a href="#" class="active">Groepchat</a>
+        </div>
+        <div class="profile">
+            <span>Loading...</span> <!-- Gebruikersinfo wordt hier weergegeven -->
+        </div>
+    </div>
+    <div class="container">
+        <h2><strong>Create Group Chat</strong></h2>
+        <label for="group-name">Name:</label>
+        <div class="form-group">
+            <input type="text" id="group-name" placeholder="Enter group name">
+            <button id="create-button">Create</button>
+        </div>
+    </div>
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const createButton = document.getElementById('create-button');
+        const groupNameInput = document.getElementById('group-name');
+        const userInfoDiv = document.querySelector('.profile span'); // Waar de gebruikersinfo wordt getoond
+
+        let userId = null;
+        let username = "Gast"; // Standaard als er geen user-info is
+
+        // Haal de ingelogde gebruiker op
+        try {
+            const userResponse = await fetch('/user-info');
+            if (!userResponse.ok) throw new Error(`HTTP error! status: ${userResponse.status}`);
+
+            const user = await userResponse.json();
+            userId = user.userId; // Haal de user ID op
+            username = user.username;
+
+            // Toon de gebruikersnaam en ID in de navbar
+            userInfoDiv.textContent = `ID: ${userId}, ${username}`;
+        } catch (err) {
+            console.error('Fout bij ophalen van gebruikersinformatie:', err);
+            userInfoDiv.textContent = "Niet ingelogd";
+        }
+
+        // Voeg event listener toe aan de knop
+        createButton.addEventListener('click', async () => {
+            const groupName = groupNameInput.value.trim(); // Haal de naam van de groep op
+            if (!groupName) {
+                alert('Voer een groepsnaam in!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/groups', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ group_name: groupName }) // Verstuur de groepsnaam naar de backend
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Fout bij het aanmaken van de groep: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                alert(`Groep '${groupName}' succesvol aangemaakt!`);
+
+                // Redirect naar groepschatpagina
+                window.location.href = `/group_chat.html?group_id=${data.group_id}`;
+            } catch (err) {
+                console.error('Fout bij het aanmaken van de groep:', err);
+                alert('Er is een fout opgetreden. Probeer het opnieuw.');
+            }
+        });
+    });
+</script>
+</html>

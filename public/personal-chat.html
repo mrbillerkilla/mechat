@@ -40,44 +40,7 @@
     </div>
 
     <script>
-        const socket = io();
-
-        document.getElementById('send').addEventListener('click', () => {
-            const message = document.getElementById('message').value;
-            if (message.trim() !== '') {
-                socket.emit('groupMessage', { group: 'general', message });
-                const messagesDiv = document.getElementById('messages');
-                const newMessage = document.createElement('div');
-                newMessage.textContent = `You: ${message}`;
-                messagesDiv.appendChild(newMessage);
-                document.getElementById('message').value = '';
-            }
-        });
-
-        socket.on('groupMessage', (data) => {
-            const messagesDiv = document.getElementById('messages');
-            const newMessage = document.createElement('div');
-            newMessage.textContent = `${data.group}: ${data.message}`;
-            messagesDiv.appendChild(newMessage);
-        });
-
-        fetch('/api/users') // Roep de API aan om gebruikers op te halen
-        .then(response => response.json())
-        .then(users => {
-            const sidebar = document.getElementById('user-sidebar');
-
-            users.forEach(user => {
-                // Maak een div voor elke gebruiker
-                const userDiv = document.createElement('div');
-                userDiv.classList.add('user');
-                userDiv.innerHTML = `
-                    <span>${user.username}</span>
-                    <span style="color: green;">Online</span> <!-- Online status aanpassen indien nodig -->
-                `;
-                sidebar.appendChild(userDiv);
-            });
-        })
-        .catch(err => console.error('Fout bij ophalen van gebruikers:', err));
+        
     </script>
 </body>
 </html>

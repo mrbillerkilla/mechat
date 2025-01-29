@@ -29,7 +29,7 @@ exports.createGroup = async (req, res) => {
 
     try {
         const [result] = await pool.promise().query(
-            'INSERT INTO groups (group_name) VALUES (?)',
+            'INSERT INTO `groups` (group_name) VALUES (?)', // Backticks rond `groups`
             [group_name]
         );
         res.status(201).json({ group_id: result.insertId, message: 'Groep succesvol aangemaakt!' });
