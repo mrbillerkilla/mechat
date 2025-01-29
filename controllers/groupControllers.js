@@ -57,29 +57,24 @@ exports.createGroup = async (req, res) => {
 // };
 
 exports.getGroupMessages = async (req, res) => {
-    const groupId = req.params.group_id;
+    const { group_id } = req.params;
 
-    if (!groupId) {
-        return res.status(400).json({ message: 'Group ID is vereist.' });
+    if (!group_id) {
+        return res.status(400).json({ error: 'Group ID is required.' });
     }
 
     try {
-        // Haal alle berichten op voor de opgegeven groep
-        const [messages] = await pool.promise().query(
-            'SELECT * FROM group_messages WHERE group_id = ? ORDER BY created_at ASC',
-            [groupId]
-        );
-
-        if (messages.length === 0) {
-            return res.status(404).json({ message: 'Geen berichten gevonden voor deze groep.' });
+        const messages = await getMessages(group_id);
+        if (!messages.length) {
+            return res.status(404).json({ error: 'No messages found for this group.' });
         }
-
-        res.status(200).json(messages); // Stuur de berichten terug naar de client
+        res.status(200).json(messages);
     } catch (err) {
-        console.error('Fout bij ophalen van berichten:', err);
-        res.status(500).json({ message: 'Er is een fout opgetreden bij het ophalen van berichten.' });
+        console.error('Error fetching group messages:', err);
+        res.status(500).json({ error: 'Error fetching messages.' });
     }
 };
+
 
 
 
@@ -88,14 +83,16 @@ exports.saveGroupMessage = async (req, res) => {
     const { group_id, sender_id, message } = req.body;
 
     if (!group_id || !sender_id || !message) {
-        return res.status(400).send('Group ID, Sender ID en bericht zijn vereist.');
+        return res.status(400).json({ error: 'Group ID, sender ID en bericht zijn vereist.' });
     }
 
     try {
         await saveMessage(group_id, sender_id, message);
-        res.status(201).send('Bericht succesvol opgeslagen.');
+        res.status(201).json({ message: 'Bericht succesvol opgeslagen', username: req.session.username });
     } catch (err) {
         console.error('Fout bij opslaan van bericht:', err);
-        res.status(500).send('Er is een fout opgetreden bij het opslaan van het bericht.');
+        res.status(500).json({ error: 'Er is een fout opgetreden bij het opslaan van het bericht.' });
     }
 };
+
+

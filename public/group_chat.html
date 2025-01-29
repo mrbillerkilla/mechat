@@ -90,68 +90,74 @@
                             return response.json();
                         })
                         .then(messages => {
-                            if (Array.isArray(messages)) {
-                                chatWindow.innerHTML = '';
-                                messages.forEach(msg => {
-                                    const messageDiv = document.createElement('div');
-                                    messageDiv.textContent = `User ${msg.sender_id}: ${msg.message}`;
-                                    chatWindow.appendChild(messageDiv);
-                                });
-                            } else {
-                                chatWindow.innerHTML = '<p>No messages found.</p>';
-                            }
+                            chatWindow.innerHTML = ''; // Wis oude berichten
+                            messages.forEach(msg => {
+                                const messageDiv = document.createElement('div');
+                                messageDiv.className = 'chat-message'; // CSS-stijl
+                                messageDiv.textContent = `User ${msg.sender_id}: ${msg.message}`;
+                                chatWindow.appendChild(messageDiv);
+                            });
+                            chatWindow.scrollTop = chatWindow.scrollHeight; // Automatisch naar beneden scrollen
                         })
                         .catch(err => {
                             console.error('Error fetching messages:', err);
                             chatWindow.innerHTML = '<p>Error loading messages.</p>';
                         });
 
+
                     // Join the group
                     socket.emit('joinGroup', { groupId, userId });
 
-                    // Receive new messages
-                    socket.on('newMessage', (msg) => {
-                        const messageDiv = document.createElement('div');
-                        messageDiv.textContent = `${msg.username}: ${msg.message}`;
-                        chatWindow.appendChild(messageDiv);
+                    socket.emit('joinGroup', { groupId, userId });
+
+                    socket.on('joinSuccess', () => {
+                        console.log(`Succesvol toegetreden tot groep ${groupId}`);
                     });
 
-                    // Send a message
+
+                    socket.on('newMessage', (msg) => {
+                        console.log('Nieuw bericht ontvangen:', msg); // Voeg deze log toe
+
+                        // Maak een nieuw div-element voor het bericht
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'chat-message'; // CSS voor opmaak
+                        messageDiv.textContent = `${msg.username}: ${msg.message}`;
+
+                        // Voeg het bericht toe aan de chat-window
+                        chatWindow.appendChild(messageDiv);
+                        chatWindow.scrollTop = chatWindow.scrollHeight; // Automatisch scrollen naar het laatste bericht
+                    });
+
+
+                    console.log(chatWindow); // Controleer of dit element correct wordt gevonden
+
+
+
                     sendButton.addEventListener('click', async () => {
                         const message = input.value.trim();
                         if (message) {
                             try {
-                                // Send message to server via socket
-                                socket.emit('sendMessage', { groupId, userId, message });
-
-                                // Save the message via backend
-                                const response = await fetch(`/groups/${groupId}/messages`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        group_id: groupId,
-                                        sender_id: userId,
-                                        message: message
-                                    })
+                                // Geen fetch meer nodig, rechtstreeks via de socket verzenden
+                                socket.emit('sendMessage', {
+                                    groupId,
+                                    userId,
+                                    message,
+                                    username // Haal de juiste username op vanuit je gebruikersinformatie
                                 });
 
-                                if (!response.ok) {
-                                    throw new Error(`Error sending message: ${response.statusText}`);
-                                }
-
-                                // Display the message in the chat after successful storage
+                                // Direct in de UI tonen
                                 const messageDiv = document.createElement('div');
                                 messageDiv.textContent = `You: ${message}`;
                                 chatWindow.appendChild(messageDiv);
-
-                                input.value = ''; // Clear the input
+                                chatWindow.scrollTop = chatWindow.scrollHeight; // Automatisch scrollen
+                                input.value = ''; // Clear input field
                             } catch (err) {
-                                console.error('Error saving message:', err);
+                                console.error('Error bij verzenden van bericht:', err);
                             }
                         }
                     });
+
+
                 })
                 .catch(err => {
                     console.error('Error fetching user information:', err);
