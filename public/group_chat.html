@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groepschat</title>
     <link rel="stylesheet" href="group_chat.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -15,20 +15,16 @@
                 <a href="/personal-chat.html">Chat</a>
                 <a href="#">Groepschat</a>
             </div>
-            <div id="user-info">Me</div>
+            <div id="user-info-display">...</div>
         </header>
-        
+
         <aside class="sidebar">
             <h3>Leden:</h3>
-            <div class="user"><span>Mike</span> <span style="color: green;">Online</span></div>
-            <div class="user"><span>Mike</span> <span style="color: red;">Offline</span></div>
             <div id="info"></div>
         </aside>
 
         <main class="main">
-            <div class="chat-window" id="chat-window">
-                <!-- Berichten worden hier weergegeven -->
-            </div>
+            <div class="chat-window" id="chat-window"></div>
             <div class="chat-input">
                 <input type="text" id="message-input" placeholder="Typ je bericht...">
                 <button id="send-button">Verzend</button>
@@ -42,128 +38,84 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Get DOM elements
-            const info = document.getElementById('info');
-            const userInfo = document.getElementById('user-info');
             const chatWindow = document.getElementById('chat-window');
             const input = document.getElementById('message-input');
             const sendButton = document.getElementById('send-button');
-            const socket = io();
+            const userInfoDisplay = document.getElementById('user-info-display');
+            const socket = io('https://67f8-94-208-45-139.ngrok-free.app'); // Zorg dat dit je echte URL is
 
-            // Get group_id from URL
             const urlParams = new URLSearchParams(window.location.search);
             const groupId = urlParams.get('group_id');
 
-            // Fetch user information from the server
+            let userId;
+            let username;
+
+            // **Stap 1: Haal de gebruikersinformatie op**
             fetch('/user-info')
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error('Niet ingelogd');
                     }
                     return response.json();
                 })
                 .then(user => {
-                    const userId = user.userId;
-                    const username = user.username;
-
-                    // Display user information
-                    userInfo.textContent = `ID: ${userId}, Username: ${username}`;
-                    console.log(`User ID: ${userId}, Username: ${username}`);
-
-                    // Check if groupId or userId is missing
-                    if (!groupId || !userId) {
-                        info.textContent = "Group ID or User ID is missing!";
-                        return;
-                    } else {
-                        info.textContent = `Group ID: ${groupId}, User ID: ${userId}`;
-                    }
-
-                    // Debug info
-                    console.log(`Group ID: ${groupId}, User ID: ${userId}`);
-
-                    // Fetch existing messages for the group
-                    fetch(`/groups/${groupId}/messages`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Error fetching messages: ${response.status}`);
-                            }
-                            return response.json();
-                        })
-                        .then(messages => {
-                            chatWindow.innerHTML = ''; // Wis oude berichten
-                            messages.forEach(msg => {
-                                const messageDiv = document.createElement('div');
-                                messageDiv.className = 'chat-message'; // CSS-stijl
-                                messageDiv.textContent = `User ${msg.sender_id}: ${msg.message}`;
-                                chatWindow.appendChild(messageDiv);
-                            });
-                            chatWindow.scrollTop = chatWindow.scrollHeight; // Automatisch naar beneden scrollen
-                        })
-                        .catch(err => {
-                            console.error('Error fetching messages:', err);
-                            chatWindow.innerHTML = '<p>Error loading messages.</p>';
-                        });
-
-
-                    // Join the group
-                    socket.emit('joinGroup', { groupId, userId });
+                    userId = user.userId;
+                    username = user.username;
+                    userInfoDisplay.textContent = `Gebruiker: ${username} (ID: ${userId})`;
 
                     socket.emit('joinGroup', { groupId, userId });
 
-                    socket.on('joinSuccess', () => {
-                        console.log(`Succesvol toegetreden tot groep ${groupId}`);
-                    });
-
-
-                    socket.on('newMessage', (msg) => {
-                        console.log('Nieuw bericht ontvangen:', msg); // Voeg deze log toe
-
-                        // Maak een nieuw div-element voor het bericht
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = 'chat-message'; // CSS voor opmaak
-                        messageDiv.textContent = `${msg.username}: ${msg.message}`;
-
-                        // Voeg het bericht toe aan de chat-window
-                        chatWindow.appendChild(messageDiv);
-                        chatWindow.scrollTop = chatWindow.scrollHeight; // Automatisch scrollen naar het laatste bericht
-                    });
-
-
-                    console.log(chatWindow); // Controleer of dit element correct wordt gevonden
-
-
-
-                    sendButton.addEventListener('click', async () => {
-                        const message = input.value.trim();
-                        if (message) {
-                            try {
-                                // Geen fetch meer nodig, rechtstreeks via de socket verzenden
-                                socket.emit('sendMessage', {
-                                    groupId,
-                                    userId,
-                                    message,
-                                    username // Haal de juiste username op vanuit je gebruikersinformatie
-                                });
-
-                                // Direct in de UI tonen
-                                const messageDiv = document.createElement('div');
-                                messageDiv.textContent = `You: ${message}`;
-                                chatWindow.appendChild(messageDiv);
-                                chatWindow.scrollTop = chatWindow.scrollHeight; // Automatisch scrollen
-                                input.value = ''; // Clear input field
-                            } catch (err) {
-                                console.error('Error bij verzenden van bericht:', err);
-                            }
-                        }
-                    });
-
-
+                    return fetch(`/groups/${groupId}/messages`);
                 })
-                .catch(err => {
-                    console.error('Error fetching user information:', err);
-                });
-        });
+                .then(response => response.json())
+                .then(messages => {
+                    messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = `${msg.username}: ${msg.message}`;
+                        chatWindow.appendChild(messageDiv);
+                    });
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                })
+                .catch(err => console.error('Fout bij ophalen van gebruikersinformatie of berichten:', err));
 
+            // **Ontvang nieuwe berichten**
+            socket.on('newMessage', (msg) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = `${msg.username}: ${msg.message}`;
+                chatWindow.appendChild(messageDiv);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            });
+
+            // **Verstuur een bericht**
+            sendButton.addEventListener('click', () => {
+                const message = input.value.trim();
+                if (message) {
+                    console.log(`DEBUG: Bericht versturen - groupId: ${groupId}, userId: ${userId}, message: ${message}`);
+
+                    fetch(`/groups/${groupId}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ group_id: groupId, sender_id: userId, message })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Fout bij het opslaan van bericht');
+                        }
+                        return response.json();
+                    })
+                    .then(() => {
+                        console.log('DEBUG: Bericht succesvol opgeslagen in de database.');
+
+                        socket.emit('sendMessage', { groupId, userId, message, username });
+                        input.value = '';
+                    })
+                    .catch(err => console.error('Fout bij verzenden van bericht:', err));
+                }
+            });
+
+        });
     </script>
 </body>
 </html>

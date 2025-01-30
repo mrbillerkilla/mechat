@@ -57,42 +57,56 @@ exports.createGroup = async (req, res) => {
 // };
 
 exports.getGroupMessages = async (req, res) => {
-    const { group_id } = req.params;
-
-    if (!group_id) {
-        return res.status(400).json({ error: 'Group ID is required.' });
-    }
-
+    const groupId = req.params.group_id;
     try {
-        const messages = await getMessages(group_id);
-        if (!messages.length) {
-            return res.status(404).json({ error: 'No messages found for this group.' });
-        }
+        const messages = await getMessages(groupId);  // Zorg dat dit correct werkt
         res.status(200).json(messages);
     } catch (err) {
-        console.error('Error fetching group messages:', err);
-        res.status(500).json({ error: 'Error fetching messages.' });
+        console.error('Fout bij ophalen van berichten:', err);
+        res.status(500).send('Er is een fout opgetreden.');
     }
 };
+
 
 
 
 
 // Sla een bericht op in een groep
-exports.saveGroupMessage = async (req, res) => {
-    const { group_id, sender_id, message } = req.body;
-
-    if (!group_id || !sender_id || !message) {
-        return res.status(400).json({ error: 'Group ID, sender ID en bericht zijn vereist.' });
-    }
-
+exports.getMessages = async (groupId) => {
     try {
-        await saveMessage(group_id, sender_id, message);
-        res.status(201).json({ message: 'Bericht succesvol opgeslagen', username: req.session.username });
+        const [messages] = await pool.promise().query(
+            `SELECT gm.message, gm.created_at, u.username 
+             FROM group_messages gm 
+             JOIN users u ON gm.sender_id = u.id 
+             WHERE gm.group_id = ? 
+             ORDER BY gm.created_at ASC`,
+            [groupId]  // Vervang '?' met de opgegeven groupId
+        );
+        return messages;  // Stuur de opgehaalde berichten terug naar de caller
     } catch (err) {
-        console.error('Fout bij opslaan van bericht:', err);
-        res.status(500).json({ error: 'Er is een fout opgetreden bij het opslaan van het bericht.' });
+        console.error('Fout bij ophalen van berichten:', err);
+        throw err;  // Laat de caller weten dat er iets misging
     }
 };
 
 
+exports.saveGroupMessage = async (req, res) => {
+    const { message } = req.body;
+    const groupId = req.params.group_id;
+    const senderId = req.session.userId;  // Zorg dat de gebruiker is ingelogd
+
+    if (!message || !groupId || !senderId) {
+        return res.status(400).json({ error: 'Ongeldige invoer' });
+    }
+
+    try {
+        const result = await pool.promise().query(
+            'INSERT INTO group_messages (group_id, sender_id, message) VALUES (?, ?, ?)',
+            [groupId, senderId, message]
+        );
+        res.status(201).json({ message: 'Bericht succesvol opgeslagen' });
+    } catch (err) {
+        console.error('Fout bij opslaan van bericht:', err);
+        res.status(500).json({ error: 'Er ging iets fout bij het opslaan van het bericht' });
+    }
+};

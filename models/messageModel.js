@@ -12,19 +12,21 @@ const pool = require('../db');
 //     }
 // };
 
-exports.saveMessage = async (group_id, sender_id, message) => {
+exports.saveMessage = async (groupId, senderId, message) => {
     try {
-        await pool.query('INSERT INTO messages (group_id, sender_id, message) VALUES (?, ?, ?)', [
-            group_id,
-            sender_id,
-            message,
-        ]);
-        console.log('Bericht succesvol opgeslagen in de database.');
+        const query = `
+            INSERT INTO group_messages (group_id, sender_id, message) 
+            VALUES (?, ?, ?)
+        `;
+        await pool.promise().query(query, [groupId, senderId, message]);
+        console.log("Bericht opgeslagen in database.");
     } catch (err) {
-        console.error('Fout bij het opslaan van bericht in de database:', err);
-        throw err;  // Gooi de fout omhoog zodat de controller het kan afhandelen
+        console.error("Fout bij opslaan van bericht in de database:", err);
+        throw err;
     }
 };
+
+
 
 
 // Berichten ophalen van een specifieke groep
